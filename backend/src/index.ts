@@ -1,50 +1,36 @@
+////////////////////////////////////
+// サーバー作成用モジュール
+///////////////////////////////////
+
 import express from 'express';
-import cors from 'cors';
+import { pool } from './db.js';
+import dotenv from 'dotenv';
+import path from 'path';
 
+// プロジェクトルートの.envを読み込む
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+// サーバーポートを環境変数から取得
+const PORT = process.env.SERVER_PORT || 3000;
 
+// Webサーバーの土台作成
 const app = express();
-const PORT = 3000;
 
-app.use(cors());  // フロントエンドからの接続を許可
-app.use(express.json());
-
-//GET:ToDo一覧取得API
-app.get('/api/todos', async(req, res) =>{
+// テスト用API(DBの現在日時取得)
+app.get('/api/healthcheck', async (req, res) => {
     try {
-        const todos = await prisma.todo.findMany({
-            where: { deletedAt: null },
-            orderBy: { createdAt: 'desc' }
+        // DBの現在日時の取得
+        const result = await pool.query('SELECT NOW()');
+        res.status(200).json({
+            status: 'OK',
+            db_time: result.rows[0].now
         });
-        res.status(200).json(todos);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'データの取得に失敗しました。' });
+        console.error(`DB接続エラー: ${error}`);
+        res.status(500).json({ error: 'DBに接続できません。'});
     }
 });
 
-// POST:ToDoの新規登録
-app.post('/api/todos', async(req, res) => {
-    //登録データの変数化
-    const { title, memo, priority, deadline, userId } = req.body;
-    try {
-         const newTodo = await prisma.todo.create({
-            data: {
-                title,
-                memo,
-                priority,
-                deadline: new Date(deadline),
-                userId, //CHECK:Phase1では適当なUUIDまたは後で作成するUserIDを想定 
-            }
-         });
-    res.status(201).json(newTodo);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'データの登録に失敗しました。'});
-    }
-});
-
-// サーバーの起動
 app.listen(PORT, () => {
-    console.log(`\n${PORT}番ポートでサーバーが起動しました。`)
-});
+    console.log(`\n${PORT}番ポートでサーバーが起動しました。`);
+})

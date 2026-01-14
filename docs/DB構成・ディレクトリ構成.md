@@ -24,9 +24,9 @@ learning-tracker/
 │   │   └── App.tsx
 │   ├── Dockerfile
 │   └── package.json
-└── shared/               # 【重要】フロントとバックで共有する型やZodスキーマ
-    └── index.ts          # Zodの定義などをここに置くと型がズレない
-
+├── shared/               # 【重要】フロントとバックで共有する型やZodスキーマ
+│   └── index.ts          # Zodの定義などをここに置くと型がズレない
+└──docs
 ```
 
 # DB構成

@@ -5,16 +5,21 @@
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-// プロジェクトルートの.envを読み込む
-dotenv.config({ path: path.resolve(__dirname, '../../.env')});
+// ESMで__dirnameを再現するための設定
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+//ルート直下の.envを読み込む
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 // DB接続設定を環境変数から取得
 const poolConfig = {
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
+    password: process.env.DB_PASS,
     port: Number(process.env.DB_PORT) || 5432,
 };
 
@@ -23,7 +28,7 @@ export const pool = new Pool(poolConfig);
 
 // 接続確認ログ
 pool.on('connect', () => {
-    console.log(`PostgreSQL接続成功:\nホスト:${poolConfig.host}\nDB名:${poolConfig.database}\nポート:${poolConfig.port}`);
+    console.log(`PostgreSQL接続成功\nホスト:${poolConfig.host}\nDB名:${poolConfig.database}\nポート:${poolConfig.port}`);
 });
 
 pool.on('error', (error) => {

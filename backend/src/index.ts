@@ -6,8 +6,13 @@ import express from 'express';
 import { pool } from './db.js';
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-// プロジェクトルートの.envを読み込む
+// ESMで__dirnameを再現するための設定
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+//ルート直下の.envを読み込む
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 // サーバーポートを環境変数から取得

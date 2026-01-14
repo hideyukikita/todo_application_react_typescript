@@ -1,0 +1,20 @@
+#######################################
+# todoアプリ インフラ構成管理ファイル
+#######################################
+
+services:
+  db:
+    image: postgres:16.11-alpine
+    container_name: todo-db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: todo_db
+    ports:
+      - "5432:5432" # A5M2やPrismaからの接続用
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:

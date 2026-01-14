@@ -11,6 +11,8 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: todo_db
+      TZ: Asia/Tokyo # OSレベル時刻設定
+      PGTZ: Asia/Tokyo # PostgreSQLレベルの時刻設定
     ports:
       - "5432:5432" # A5M2やPGからの接続用
     volumes:

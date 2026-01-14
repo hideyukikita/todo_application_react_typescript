@@ -25,10 +25,12 @@ const app = express();
 app.get('/api/healthcheck', async (req, res) => {
     try {
         // DBの現在日時の取得
-        const result = await pool.query('SELECT NOW()');
+        const result = await pool.query(
+             `SELECT TO_CHAR(NOW() AT TIME ZONE 'JST', 'YYYY-MM-DD HH24:MI:SS') as jst_time`
+        );
         res.status(200).json({
             status: 'OK',
-            db_time: result.rows[0].now
+            db_time: result.rows[0].jst_time
         });
     } catch (error) {
         console.error(`DB接続エラー: ${error}`);

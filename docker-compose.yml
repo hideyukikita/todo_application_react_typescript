@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: todo_db
     ports:
-      - "5432:5432" # A5M2やPrismaからの接続用
+      - "5432:5432" # A5M2やPGからの接続用
     volumes:
       - db-data:/var/lib/postgresql/data
 

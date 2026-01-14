@@ -5,14 +5,12 @@ learning-tracker/
 ├── .env                  # 全体で使う環境変数
 ├── backend/              # Node.js (Express) + Prisma
 │   ├── src/
-│   │   ├── controllers/  # リクエスト処理のロジック
-│   │   ├── middlewares/  # 認証(JWT)やZodバリデーション
-│   │   ├── routes/       # ルーティング定義
-│   │   ├── services/     # DB操作 (Prisma)
-│   │   ├── utils/        # 共通関数 (bcrypt, JWT生成)
-│   │   └── index.ts      # エントリーポイント
-│   ├── prisma/
-│   │   └── schema.prisma # DB設計図
+│   │   ├── controllers/    # リクエスト処理のロジック
+│   │   ├── middlewares/    # 認証(JWT)やZodバリデーション
+│   │   ├── routes/         # ルーティング定義
+│   │   ├── services/       # DB操作 (Prisma)
+│   │   ├── utils/          # 共通関数 (bcrypt, JWT生成)
+│   │   └── index.ts        # エントリーポイント
 │   ├── Dockerfile
 │   └── package.json
 ├── frontend/             # React (Vite)
@@ -33,7 +31,7 @@ learning-tracker/
 ## Userテーブル(ユーザー情報)
 | カラム名 | 型 | 説明 |
 |---------| --- | ----- |
-| id | String(UUID) | 主キー |
+| id | UUID | 主キー |
 | email | String | ユニーク(ログインID) |
 | password | String | ハッシュ化されたパスワード |
 | name | String | 表示名 |
@@ -41,12 +39,12 @@ learning-tracker/
 ## ToDo(タスク情報)
 | カラム名 | 型 | 説明 |
 |---------| --- | ----- |
-| id | String(UUID) | 主キー |
-| UserId | String | 外部キー(User.idと紐づけ) |
+| id | UUID | 主キー |
+| user_id | String | 外部キー(User.idと紐づけ) |
 | title | String | タスク名 |
 | memo | String | 詳細メモ |
-| priority | Enum | `HIGH`,`MEDIUM`,`LOW` |
+| priority | Enum型 | `HIGH`,`MEDIUM`,`LOW` |
 | deadline | DateTime | 締切日 |
-| isCompleted | Boolean | 完了フラグ(初期値:false) |
-| createdAt | DateTime | 作成日時 |
-| deletedAt | DateTime | 削除日時(ここが値を持てば削除済み) |
+| is_completed | Boolean | 完了フラグ(初期値:false) |
+| created_at | DateTime | 作成日時 |
+| deleted_at | DateTime | 削除日時(ここが値を持てば削除済み) |

@@ -65,7 +65,8 @@ app.get('/api/todos', async (req, res) => {
             ORDER BY
                 created_at DESC
         `;
-        // 結果の格納
+
+        // SQL実行
         const result = await pool.query(query);
         // 取得したデータをJSONとして返す
         res.status(200).json(result.rows);
@@ -76,7 +77,7 @@ app.get('/api/todos', async (req, res) => {
 });
 
 
-//[POST]Todo新規登録API
+//[POST] /api/todos Todo新規登録API
 app.post('/api/todos', async (req, res) => {
     // 登録データの変数化
     const { title, memo, priority, deadline } = req.body;
@@ -88,6 +89,8 @@ app.post('/api/todos', async (req, res) => {
             RETURNING ${TODO_COLUMNS};
         `;
         const values = [title, memo, priority, deadline];
+
+        // SQL実行
         const result = await pool.query(query, values);
 
         // 作成されたデータを返す
@@ -99,6 +102,79 @@ app.post('/api/todos', async (req, res) => {
 });
 
 
+// [PUT] /api/todos/:id Todo更新API
+app.put('/api/todos/:id', async ( req, res ) => {
+    // 登録データの変数化
+    const { id } = req.params;
+    const { title, memo, priority, deadline, is_completed } = req.body;
+
+    try {
+        const query = `
+        UPDATE
+            todos
+        SET
+            title = $1,
+            memo = $2,
+            priority = $3,
+            deadline = $4,
+            is_completed = $5
+        WHERE
+            id = $6 AND deleted_at IS NULL
+        RETURNING 
+            ${TODO_COLUMNS};
+        `
+        const values = [title, memo, priority, deadline, is_completed, id];
+
+        // SQL実行
+        const result = await pool.query(query, values);
+
+        // 更新タスクがない場合
+        if(result.rows.length === 0){
+            return res.status(404).json({ error: '対象のタスクが見つかりませんでした。'});
+        }
+
+        // 更新後のデータを返す
+        res.status(200).json(result.rows[0]);
+    } catch (error) {
+        console.error(`Todo更新エラー: ${error}`);
+        res.status(500).json({error: 'データの更新に失敗しました。'});
+    }
+});
+
+// [DELETE] /api/todos/:id Todo論理削除API
+app.delete('/api/todos/:id', async ( req, res) => {
+    // 削除データのID取得
+    const {id} = req.params;
+    
+    try {
+        const query = `
+            UPDATE
+                todos
+            SET
+                deleted_at = NOW()
+            WHERE
+                id = $1 AND deleted_at IS NULL
+            RETURNING
+                id
+            ;
+        `;
+        // SQL実行
+        const result = await pool.query(query, [id]);
+
+        // 削除対象がない場合
+        if(result.rows.length === 0){
+            return res.status(404).json({ error: '対象のタスクが見つかりませんでした。'});
+        }
+
+        //削除成功時は削除したIDを返す
+        res.status(200).json({ message: '削除が完了しました。', id: result.rows[0].id });
+    } catch (error) {
+        console.error(`Todo削除エラー: ${error}`);
+        res.status(500).json({ error: 'データの削除に失敗しました。'});
+    };
+})
+
+// サーバーの起動
 app.listen(PORT, () => {
     console.log(`\n${PORT}番ポートでサーバーが起動しました。`);
 })

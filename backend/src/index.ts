@@ -38,6 +38,37 @@ app.get('/api/healthcheck', async (req, res) => {
     }
 });
 
+// [GET] /api/todos Todo一覧取得API
+app.get('/api/todos', async (req, res) => {
+    try {
+        // SQLの設定
+        const query = `
+            SELECT
+                id,
+                title,
+                memo,
+                priority,
+                is_completed,
+                TO_CHAR(deadline AT TIME ZONE 'JST', 'YYYY-MM-DD HH24:MI:SS') as deadline,
+                TO_CHAR(created_at AT TIME ZONE 'JST', 'YYYY-MM-DD HH24:MI:SS') as created_at
+            FROM todos
+            WHERE
+                deleted_at IS NULL
+            ORDER BY
+                created_at DESC
+        `;
+        // 結果の格納
+        const result = await pool.query(query);
+        // 取得したデータをJSONとして返す
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error(`Todo取得エラー: ${error}`);
+        res.status(500).json({ error: 'データの取得に失敗しました。'});
+    }
+});
+
+
+
 app.listen(PORT, () => {
     console.log(`\n${PORT}番ポートでサーバーが起動しました。`);
 })

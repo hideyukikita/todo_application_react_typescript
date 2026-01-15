@@ -8,13 +8,11 @@ services:
     container_name: todo-db
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: todo_db
-      TZ: Asia/Tokyo # OSレベル時刻設定
-      PGTZ: Asia/Tokyo # PostgreSQLレベルの時刻設定
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432" # A5M2やPGからの接続用
+      - "${DB_PORT}:5432" # A5M2やPGからの接続用
     volumes:
       - db-data:/var/lib/postgresql/data
 

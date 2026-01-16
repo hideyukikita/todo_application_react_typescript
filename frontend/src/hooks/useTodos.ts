@@ -45,3 +45,20 @@ export const useCreateTodo = () => {
         },
     })
 };
+
+// Todoの完了状態や内容を更新するためのカスタムフック
+export const useUpdateTodo = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        // 引数として更新したいTodoのIDと、更新内容を受け取る
+        mutationFn: async({ id, updates }: { id: String; updates: Partial<Todo> }) => {
+            const { data } = await api.put(`/todos/${id}`, updates);
+            return data;
+        },
+        // 成功したら一覧を再取得して画面を更新
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['Todos'] });
+        }
+    })
+}

@@ -1,9 +1,10 @@
 ////////////////////////////////////////////
-//Todo一覧取得カスタムフック
+//Todoカスタムフック
 ////////////////////////////////////////////
 
 import { useQuery } from '@tanstack/react-query'
 import api from '../lib/axios'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 // Todoアイテムの型定義
 export interface Todo {
@@ -28,3 +29,19 @@ export const useTodos = () => {
         },
     })
 }
+
+// Todoを新規登録するためのカスタムフック
+export const useCreateTodo = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (newTodo: { title: string; memo: string; priority: string; deadline: string}) => {
+            const { data } = await api.post('/todos', newTodo);
+            return data;
+        }, 
+        
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['Todos']});
+        },
+    })
+};

@@ -4,6 +4,7 @@
 
 import { useTodos } from './hooks/useTodos'
 import { CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react'
+import { TodoForm } from './components/TodoForm';
 
 
 function App() {
@@ -35,6 +36,9 @@ function App() {
           <h1 className='text-3xl font-bold text-gray-800'>My Todo List</h1>
           <p className='text-gray-600'>Phase1: DB接続・一覧表示テスト</p>
         </header>
+
+        {/* 新規登録フォーム */}
+        <TodoForm />
 
         {/* Todoリスト本体 */}
         <div className='space-y-4'>

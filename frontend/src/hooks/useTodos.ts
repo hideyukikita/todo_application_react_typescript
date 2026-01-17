@@ -52,7 +52,7 @@ export const useUpdateTodo = () => {
 
     return useMutation({
         // 引数として更新したいTodoのIDと、更新内容を受け取る
-        mutationFn: async({ id, updates }: { id: String; updates: Partial<Todo> }) => {
+        mutationFn: async({ id, updates }: { id: string; updates: Partial<Todo> }) => {
             const { data } = await api.put(`/todos/${id}`, updates);
             return data;
         },

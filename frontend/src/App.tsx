@@ -2,7 +2,7 @@
 // メイン画面
 ////////////////////////////////////////////
 
-import { useTodos } from './hooks/useTodos'
+import { useTodos, useUpdateTodo } from './hooks/useTodos'
 import { CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react'
 import { TodoForm } from './components/TodoForm';
 
@@ -10,6 +10,23 @@ import { TodoForm } from './components/TodoForm';
 function App() {
   // カスタムフックから「データ」「ロード状態」「エラー状態」を取り出す
   const { data: todos, isLoading, isError } = useTodos();
+
+  // 更新機能の準備
+  const updateTodoMutation = useUpdateTodo();
+
+  // 完了・未完了を切り替える関数
+  const handleToggleComplete = (todo: any) => {
+    updateTodoMutation.mutate({
+      id: todo.id,
+      updates: {
+        title: todo.title,
+        memo: todo.memo,
+        priority: todo.priority,
+        deadline: todo.deadline,
+        is_completed: !todo.is_completed 
+      }
+    });
+  };
 
   // 1. ロード中の表示
   if(isLoading){
@@ -51,20 +68,26 @@ function App() {
                 className='bg-white  p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow'
                 >
                   <div className='flex items-center space-x-4'>
-                    {/* 完了状態アイコン */}
-                    {todo.is_completed ? (
-                      <CheckCircle2 className='text-green-500 w-6 h-6' />
-                    ) : (
-                      <Circle className='text-gray-300 w-6 h-6' />
-                    )}
+                    <button
+                      onClick={() => handleToggleComplete(todo)}
+                      className='focus:outline-none hover:scale-110 transition-transform active:scale-95'
+                      disabled={updateTodoMutation.isPending}
+                      >
+                      {/* 完了状態アイコン */}
+                      {todo.is_completed ? (
+                        <CheckCircle2 className='text-green-500 w-6 h-6' />
+                      ) : (
+                        <Circle className='text-gray-300 w-6 h-6' />
+                      )}
+                    </button>
 
-                    <div>
-                      <h3 className={`font-semibold ${todo.is_completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-                        {todo.title}
-                      </h3>
-                      <p className='text-sm text-gray-500'>{todo.memo}</p>
+                      <div>
+                        <h3 className={`font-semibold ${todo.is_completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                          {todo.title}
+                        </h3>
+                        <p className='text-sm text-gray-500'>{todo.memo}</p>
+                      </div>
                     </div>
-                  </div>
 
                   <div className='flex items-center space-x-4 text-sm text-gray-500'>
                     {/* 優先度バッジ */}

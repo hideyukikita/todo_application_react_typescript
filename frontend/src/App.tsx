@@ -2,7 +2,7 @@
 // メイン画面
 ////////////////////////////////////////////
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useTodos, useUpdateTodo, useDeleteTodo } from './hooks/useTodos'
 import type { Todo } from './hooks/useTodos' 
 import { CheckCircle2, Circle, Clock, AlertCircle, Trash2, Pencil } from 'lucide-react'
@@ -12,6 +12,28 @@ import { TodoForm } from './components/TodoForm';
 function App() {
   // カスタムフックから「データ」「ロード状態」「エラー状態」を取り出す
   const { data: todos, isLoading, isError } = useTodos();
+
+  // ソート機能の状態を管理するステート
+  const [sortBy, setSortBy] = useState<'deadline' | 'priority' | 'created'>('created');
+
+  // 表示用データの算出
+  const sortedTodos = React.useMemo(() => {
+    if(!todos) return [];
+
+    return [...todos].sort((a, b) => {
+      // 締め切り順
+      if(sortBy === 'deadline') {
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      };
+      // 重要度順
+      if(sortBy === 'priority'){
+        const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+        return priorityOrder[b.priority] - priorityOrder[a.priority]
+      }
+      // 作成日順(デフォルト)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [todos, sortBy])
 
   // 更新機能の準備
   const updateTodoMutation = useUpdateTodo();
@@ -69,9 +91,32 @@ function App() {
     
 
       <div className='max-w-4xl mx-auto'>
-        <header className='mb-8'>
-          <h1 className='text-3xl font-bold text-gray-800'>My Todo List</h1>
-          <p className='text-gray-600'>Phase1: 高機能CRUD実装</p>
+        <header className='mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4'>
+          <div>
+            <h1 className='text-3xl font-bold text-gray-800'>My Todo List</h1>
+            <p className='text-gray-600'>Phase1: 高機能CRUD実装</p>
+          </div>
+          {/* ソート切り替えボタン */}
+          <div className='flex bg-gray-100 p-1 rounded-lg shadow-inner'>
+            <button 
+              onClick={() => setSortBy('created')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${sortBy === 'created' ? 'bg-white shadow-sm text-blue-600': 'text-gray-500 hover:text-gray-700'}`}
+            >
+              作成順
+            </button>
+            <button 
+              onClick={() => setSortBy('deadline')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${sortBy === 'deadline' ? 'bg-white shadow-sm text-blue-600': 'text-gray-500 hover:text-gray-700'}`}
+            >
+              〆切順
+            </button>
+            <button 
+              onClick={() => setSortBy('priority')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${sortBy === 'priority' ? 'bg-white shadow-sm text-blue-600': 'text-gray-500 hover:text-gray-700'}`}
+            >
+              優先度順
+            </button>
+          </div>
         </header>
 
         {/* 新規登録フォーム */}
@@ -79,10 +124,10 @@ function App() {
 
         {/* Todoリスト本体 */}
         <div className='space-y-4'>
-          {todos?.length === 0 ? (
+          {sortedTodos?.length === 0 ? (
             <p className='text-center text-gray-500 py-10'>タスクがありません。</p>
           ): (
-            todos?.map((todo) => (
+            sortedTodos?.map((todo) => (
               <div
                 key={todo.id}
                 className='bg-white  p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow'

@@ -35,7 +35,7 @@ export const useCreateTodo = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (newTodo: { title: string; memo: string; priority: string; deadline: string}) => {
+        mutationFn: async (newTodo: { title: string; memo: string; priority: Todo['priority']; deadline: string}) => {
             const { data } = await api.post('/todos', newTodo);
             return data;
         }, 
@@ -62,3 +62,19 @@ export const useUpdateTodo = () => {
         }
     })
 }
+
+// Todoを論理削除するためのカスタムフック
+export const useDeleteTodo = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ( id: string ) => {
+            const { data } = await api.delete(`/todos/${id}`);
+            return data;
+        },
+        // 成功したら一覧を再取得
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['Todos'] });
+        }
+    });
+};

@@ -2,8 +2,10 @@
 // メイン画面
 ////////////////////////////////////////////
 
-import { useTodos, useUpdateTodo } from './hooks/useTodos'
-import { CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react'
+import { useState } from 'react';
+import { useTodos, useUpdateTodo, useDeleteTodo } from './hooks/useTodos'
+import type { Todo } from './hooks/useTodos' 
+import { CheckCircle2, Circle, Clock, AlertCircle, Trash2, Pencil } from 'lucide-react'
 import { TodoForm } from './components/TodoForm';
 
 
@@ -13,19 +15,26 @@ function App() {
 
   // 更新機能の準備
   const updateTodoMutation = useUpdateTodo();
+  const deleteTodoMutation = useDeleteTodo();
+  
+  //現在編集中のタスクを管理(nullならモーダル非表示)
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
 
   // 完了・未完了を切り替える関数
-  const handleToggleComplete = (todo: any) => {
+  const handleToggleComplete = (todo: Todo) => {
     updateTodoMutation.mutate({
       id: todo.id,
-      updates: {
-        title: todo.title,
-        memo: todo.memo,
-        priority: todo.priority,
-        deadline: todo.deadline,
-        is_completed: !todo.is_completed 
-      }
+      updates: { 
+        ...todo,
+        is_completed: !todo.is_completed }
     });
+  };
+
+  // 削除実行関数
+  const handleDelete = (id: string) => {
+    if (window.confirm(`このタスクを削除しますか?`)) {
+      deleteTodoMutation.mutate(id);
+    }
   };
 
   // 1. ロード中の表示
@@ -47,11 +56,22 @@ function App() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50 p-4 md:p-8'>
+    <div className='min-h-screen bg-gray-50 p-4 md:p-8 relative'>
+      {/* 編集モーダル:editingTodoがある時だけ表示 */}
+      {editingTodo && (
+        <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+          <div className='max-w-2xl w-full animate-in fade-in zoom-in duration-200'>
+          {/* onCloseでeditingTodoをnullにすればモーダルが閉じる */}
+          <TodoForm editTodo={editingTodo} onClose={() => setEditingTodo(null)} />
+          </div>
+        </div>
+      )}
+    
+
       <div className='max-w-4xl mx-auto'>
         <header className='mb-8'>
           <h1 className='text-3xl font-bold text-gray-800'>My Todo List</h1>
-          <p className='text-gray-600'>Phase1: DB接続・一覧表示テスト</p>
+          <p className='text-gray-600'>Phase1: 高機能CRUD実装</p>
         </header>
 
         {/* 新規登録フォーム */}
@@ -60,7 +80,7 @@ function App() {
         {/* Todoリスト本体 */}
         <div className='space-y-4'>
           {todos?.length === 0 ? (
-            <p className='text-center text-gray-500 py-10'>タスクがありません。データを登録してください。</p>
+            <p className='text-center text-gray-500 py-10'>タスクがありません。</p>
           ): (
             todos?.map((todo) => (
               <div
@@ -102,6 +122,21 @@ function App() {
                       <Clock className='w-4 h-4 mr-1' />
                       {todo.deadline}
                     </div>
+                    {/* 編集ボタン */}
+                    <button
+                      onClick={() => {setEditingTodo(todo)}}
+                      className='text-gray-400 hover:text-blue-600 transition-colors p-1'
+                    >
+                      <Pencil className='w-5 h-5'/>
+                    </button>
+                    {/* 削除ボタン */}
+                    <button
+                      onClick={() => handleDelete(todo.id)}
+                      className='text-gray-400 hover:text-red-500 transition-colors p-1'
+                      disabled={deleteTodoMutation.isPending}
+                    >
+                      <Trash2 className='w-5 h-5' />
+                    </button>
                   </div>
               </div>
             ))

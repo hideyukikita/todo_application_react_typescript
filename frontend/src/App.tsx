@@ -7,6 +7,7 @@ import { useTodos, useUpdateTodo, useDeleteTodo } from './hooks/useTodos'
 import type { Todo } from './hooks/useTodos' 
 import { CheckCircle2, Circle, Clock, AlertCircle, Trash2, Pencil } from 'lucide-react'
 import { TodoForm } from './components/TodoForm';
+import { TodoStats } from './components/TodoStats';
 
 
 function App() {
@@ -118,6 +119,9 @@ function App() {
             </button>
           </div>
         </header>
+
+        {/* 統計グラフ */}
+        {todos && <TodoStats todos={todos}/>}
 
         {/* 新規登録フォーム */}
         <TodoForm />

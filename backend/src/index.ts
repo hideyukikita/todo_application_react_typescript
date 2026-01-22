@@ -2,6 +2,7 @@
 // サーバー作成用モジュール
 ///////////////////////////////////
 import express from 'express';
+import cors from 'cors'
 import { pool } from './db.js';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -30,6 +31,7 @@ const PORT = process.env.SERVER_PORT || 3000;
 // Webサーバーの土台作成
 const app = express();
 
+app.use(cors());
 // JSONを受け取れるようミドルウェア追加
 app.use(express.json());
 

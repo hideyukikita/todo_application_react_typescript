@@ -59,6 +59,8 @@ export const TodoStats = ({ todos }: TodoStatsProps) => {
                                 <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                         </Pie>
+                        <Tooltip/>
+                        <Legend verticalAlign="bottom" height={36} />
                     </PieChart>
                 </ResponsiveContainer>
             </div> 

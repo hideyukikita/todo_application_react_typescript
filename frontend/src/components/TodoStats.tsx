@@ -44,7 +44,7 @@ export const TodoStats = ({ todos }: TodoStatsProps) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* 完了比率グラフ */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-grey-100 h-64">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-64">
                 <h3 className="text-gray-600 text-sm font-bold mb-4">タスク完了比率</h3>
                 <ResponsiveContainer width='100%' height='100%'>
                     <PieChart>

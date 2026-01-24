@@ -1,7 +1,7 @@
 # 📋 高機能ToDo管理アプリ (Phase 2 完了)
 
-2026年最新の技術スタックを用いた、家庭内共有可能なToDo管理アプリケーション。
-Phase 1 では、Dockerベースのインフラ構築、バックエンドCRUD基盤、およびフロントエンドの一覧表示実装を完了しました。
+- 2026年最新の技術スタックを用いた、家庭内共有可能なToDo管理アプリケーション。
+- Phase 1 では、Dockerベースのインフラ構築、バックエンドCRUD基盤、およびフロントエンドの一覧表示実装を完了しました。
 
 ## 🚀 技術スタック
 - **Frontend**: React (Vite 7), TypeScript, Tailwind CSS v4, TanStack Query, Axios

@@ -1,30 +1,26 @@
 # ディレクトリ構成
 ```
-learning-tracker/
+todo_application_react_typescript/
 ├── docker-compose.yml
-├── .env                  # 全体で使う環境変数
-├── backend/              # Node.js (Express) + Prisma
+├── .env                      # 全体・DB用環境変数
+├── Connect-SWL.ps1           # WSL2ポート転送自動化スクリプト
+├── backend/                  # Node.js (Express)
 │   ├── src/
-│   │   ├── controllers/    # リクエスト処理のロジック
-│   │   ├── middlewares/    # 認証(JWT)やZodバリデーション
-│   │   ├── routes/         # ルーティング定義
-│   │   ├── services/       # DB操作 (Prisma)
-│   │   ├── utils/          # 共通関数 (bcrypt, JWT生成)
-│   │   └── index.ts        # エントリーポイント
-│   ├── Dockerfile
-│   └── package.json
-├── frontend/             # React (Vite)
+│   │   ├── db.ts             # pg (node-postgres) 接続設定
+│   │   └── index.ts          # エントリーポイント・API定義
+│   ├── package.json
+│   └── tsconfig.json
+├── frontend/                 # React (Vite 7)
+│   ├── .env                  # API接続先(物理IP)を定義
 │   ├── src/
-│   │   ├── components/   # UI部品
-│   │   ├── hooks/        # TanStack Query等のカスタムフック
-│   │   ├── pages/        # Dashboard, Login等の画面単位
-│   │   ├── lib/          # axios, zodaの設定
+│   │   ├── components/       # UI部品
+│   │   ├── hooks/            # useTodos, useMutation等のカスタムフック
+│   │   ├── lib/              # axiosインスタンス設定
 │   │   └── App.tsx
-│   ├── Dockerfile
+│   ├── vite.config.ts        # host: true 設定済み
 │   └── package.json
-├── shared/               # 【重要】フロントとバックで共有する型やZodスキーマ
-│   └── index.ts          # Zodの定義などをここに置くと型がズレない
-└──docs
+├── shared/                   # 【Phase 3で使用】共通Zodスキーマ・型定義
+└── docs/                     # 設計書・進捗管理
 ```
 
 # DB構成

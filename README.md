@@ -1,4 +1,4 @@
-# 📋 高機能ToDo管理アプリ (Phase 1 完了)
+# 📋 高機能ToDo管理アプリ (Phase 2 完了)
 
 2026年最新の技術スタックを用いた、家庭内共有可能なToDo管理アプリケーション。
 Phase 1 では、Dockerベースのインフラ構築、バックエンドCRUD基盤、およびフロントエンドの一覧表示実装を完了しました。
@@ -9,7 +9,48 @@ Phase 1 では、Dockerベースのインフラ構築、バックエンドCRUD�
 - **Database**: PostgreSQL 16 (Docker)
 - **Infrastructure**: Docker Compose, .env による環境変数一元管理
 
-## 🛠 技術的な意思決定 (2026/01/15 備忘録)
+## 🛠 実行・開発手順 (スマホ接続対応)
+### 1. サーバーの起動
+  1. 各ディレクトリでコンテナとサーバーを起動します。
+
+```bash
+# DB起動
+docker-compose up -d
+
+# Backend起動 (backendディレクトリ)
+npm run dev
+
+# Frontend起動 (frontendディレクトリ)
+npm run dev
+```
+### 2. スマホ接続のための自動設定(WSL2環境)
+- WSL2の内部IPは変動するため、プロジェクトルートにある自動化スクリプトを使用してWindows側の通り道を確保します。
+1. Windows側でPowerShellを「管理者として実行」する。
+2. プロジェクトルートへ移動し、以下のスクリプトを実行する。
+```bash
+# 実行ポリシーの許可(初回のみ)
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# スクリプトの実行
+.\Connect-SWL.ps1
+```
+3. PCのIPアドレスを確認し、`frontend/.env`の`VITE_API_URL`を更新します。  
+- **PowerShell**
+```bash
+ipconfig # Wi-FiのIPv4アドレス(例:192.168.0.222)を確認
+```
+- **env**
+```bash
+# frontend/.env
+VITE_API_URL=http://192.168.0.222:3000
+```
+### 3. スマホからのアクセス
+- PCと同じWi-Fiに接続したスマホのブラウザからアクセスします。
+- アプリホーム画面: `http://[PCのIPアドレス]:5173`
+- API疎通確認: `http://[PCのIPアドレス]:3000/api/healthcheck
+`
+
+## 🛠 技術的な意思決定 (2026/01/24 備忘録)
 
 ### 1. データベース接続とORMの選定
 - **脱Prismaの方針**: Prisma 7 における特定環境下の接続トラブル（ポート51214への誤接続）を回避するため、`pg` ライブラリによる直接的なSQL実行方式へ移行。これにより、意図しないモックDBへの接続を完全に排除し、安定したDB接続を実現した。
@@ -22,7 +63,8 @@ Phase 1 では、Dockerベースのインフラ構築、バックエンドCRUD�
 
 ### 3. モダンな開発環境への対応
 - **ES Modules (ESM)**: 全体で ESM を採用。`import` 文には `.js` 拡張子を付与し、`db.ts` 等では `import.meta.url` を用いてパス解決を行うことで、Node.js v22 系統の最新仕様に準拠。
-- **Vite Proxy**: フロントエンド（Port 5173）からバックエンド（Port 3000）への通信は Vite のプロキシ機能を活用し、開発時の CORS 制約を解消。
+- **Vite Proxy**: フロントエンド（Port 5173）からバックエンド（Port 3000）への通信は Vite のプロキシ機能を活用し、開発時物理IPによる直接通信: スマホ等の外部デバイスからWSL2上のバックエンドへアクセスするため、Vite Proxy（localhost前提）に依存せず、フロントエンドからPCの物理IPアドレスを直接参照する構成を採用。
+- **WSL2ポート転送の自動化**: Connect-SWL.ps1 を作成し、変動するWSL2内部IPとWindowsホスト間のポートフォワーディングを自動化。
 
 ## 📁 主要構成
 - `backend/`: Expressサーバー、SQLクエリ、DB接続管理
@@ -30,5 +72,4 @@ Phase 1 では、Dockerベースのインフラ構築、バックエンドCRUD�
 - `docker-compose.yml`: PostgreSQLコンテナ設定（.env 連携済み）
 
 ## 🚦 今後のロードマップ
-- **Phase 2**: WiFi共有テスト、スマホからのアクセス確認、CORS設定の最適化。
 - **Phase 3**: JWT認証の実装、Zodによるバリデーション、タスク統計の可視化。

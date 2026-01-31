@@ -4,12 +4,14 @@ FROM node:22-alpine
 WORKDIR /app
 
 # パッケージ定義をコピーしてインストール
-COPY package*.json ./
+COPY frontend/package*.json ./
 RUN npm install
 
 # ソースコードをコピー
-COPY . .
+COPY frontend/ ./frontend/
+COPY shared/ ./shared/
 
+WORKDIR /app/frontend
 # Vite 7 では 5173 ポートを使用
 EXPOSE 5173
 

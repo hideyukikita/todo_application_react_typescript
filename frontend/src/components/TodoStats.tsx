@@ -33,13 +33,14 @@ export const TodoStats = ({ stats }: TodoStatsProps) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* 完了比率グラフ */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-64 relative">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-80 relative"> {/* h-80に拡大 */}
                 <h3 className="text-gray-600 text-sm font-bold mb-4">タスク完了比率</h3>
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none mt-4">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none pt-4"> {/* mtからptに変更 */}
                     <span className="text-2xl font-bold text-gray-700">{completionRate}%</span>
                 </div>
                 <ResponsiveContainer width='100%' height='100%'>
-                    <PieChart>
+                    {/* marginを追加して凡例のスペースを確保 */}
+                    <PieChart margin={{ top: 0, right: 0, bottom: 20, left: 0 }}>
                         <Pie
                             data={pieData}
                             innerRadius={60}
@@ -55,22 +56,24 @@ export const TodoStats = ({ stats }: TodoStatsProps) => {
                         <Tooltip 
                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                         />
-                        <Legend iconType="circle" verticalAlign="bottom" />
+                        <Legend iconType="circle" verticalAlign="bottom" wrapperStyle={{ paddingTop: '10px' }} />
                     </PieChart>
                 </ResponsiveContainer>
             </div> 
 
             {/* 日別完了数グラフ */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-64">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-80"> {/* h-80に拡大 */}
                 <h3 className="text-gray-600 text-sm font-bold mb-4">日別完了タスク (直近7日間)</h3>
                 <ResponsiveContainer width='100%' height='100%'>
-                    <BarChart data={barData}>
+                    {/* margin.bottomを増やして日付の表示領域を確保 */}
+                    <BarChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 30 }}>
                         <XAxis 
                             dataKey='date' 
                             fontSize={11} 
                             tickLine={false} 
                             axisLine={false} 
                             dy={10} 
+                            height={40} // 軸の高さを明示
                         />
                         <YAxis 
                             fontSize={11} 
@@ -84,7 +87,7 @@ export const TodoStats = ({ stats }: TodoStatsProps) => {
                         />
                         <Bar 
                             dataKey='count' 
-                            fill="#22c55e" // 完了の緑と統一
+                            fill="#22c55e" 
                             radius={[4, 4, 0, 0]} 
                             barSize={20}
                             animationDuration={1500}
@@ -94,4 +97,5 @@ export const TodoStats = ({ stats }: TodoStatsProps) => {
             </div>
         </div>
     )
+
 }

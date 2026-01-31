@@ -18,7 +18,9 @@ services:
       - db-data:/var/lib/postgresql/data
   # Backend(Node.js/Express)
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: todo-backend
     restart: always
     ports:
@@ -34,7 +36,9 @@ services:
 
   # Frontend(React/vite)
   frontend:
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
     container_name: todo-frontend
     restart: always
     ports:

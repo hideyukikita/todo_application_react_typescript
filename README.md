@@ -1,8 +1,8 @@
-# 📋 高機能ToDo管理アプリ (Phase 2 完了)
-
+# 📋 高機能ToDo管理アプリ
 - 2026年最新の技術スタックを用いた、家庭内共有可能なToDo管理アプリケーション。
-- Phase 1 では、Dockerベースのインフラ構築、バックエンドCRUD基盤、およびフロントエンドの一覧表示実装を完了しました。
-
+- **マルチデバイス対応**: WSL2環境からネットワークを開放し、スマホやタブレットからリアルタイムにタスク管理が可能。
+- **堅牢な設計**: フロント・バック間でZodスキーマを共有し、不正データの混入を完全にシャットアウト。
+  
 ## 🚀 技術スタック
 - **Frontend**: React (Vite 7), TypeScript, Tailwind CSS v4, TanStack Query, Axios
 - **Backend**: Node.js (Express), TypeScript, pg (node-postgres)
@@ -11,17 +11,11 @@
 
 ## 🛠 実行・開発手順 (スマホ接続対応)
 ### 1. サーバーの起動
-  1. 各ディレクトリでコンテナとサーバーを起動します。
+  1. プロジェクトのルートディレクトリで以下のコマンドを実行する。
 
 ```bash
-# DB起動
-docker-compose up -d
-
-# Backend起動 (backendディレクトリ)
-npm run dev
-
-# Frontend起動 (frontendディレクトリ)
-npm run dev
+# 全サービスをビルドしてバックグラウンドで起動
+docker compose up -d --build
 ```
 ### 2. スマホ接続のための自動設定(WSL2環境)
 - WSL2の内部IPは変動するため、プロジェクトルートにある自動化スクリプトを使用してWindows側の通り道を確保します。
@@ -34,14 +28,14 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 # スクリプトの実行
 .\Connect-SWL.ps1
 ```
-3. PCのIPアドレスを確認し、`frontend/.env`の`VITE_API_URL`を更新します。  
+1. PCのIPアドレスを確認し、ルート直下の`.env`内にある`VITE_API_URL`を更新後、再起動する
 - **PowerShell**
 ```bash
 ipconfig # Wi-FiのIPv4アドレス(例:192.168.0.222)を確認
 ```
 - **env**
 ```bash
-# frontend/.env
+# .env
 VITE_API_URL=http://192.168.0.222:3000
 ```
 ### 3. スマホからのアクセス
@@ -50,7 +44,7 @@ VITE_API_URL=http://192.168.0.222:3000
 - API疎通確認: `http://[PCのIPアドレス]:3000/api/healthcheck
 `
 
-## 🛠 技術的な意思決定 (2026/01/24 備忘録)
+## 🛠 技術的な意思決定
 
 ### 1. データベース接続とORMの選定
 - **脱Prismaの方針**: Prisma 7 における特定環境下の接続トラブル（ポート51214への誤接続）を回避するため、`pg` ライブラリによる直接的なSQL実行方式へ移行。これにより、意図しないモックDBへの接続を完全に排除し、安定したDB接続を実現した。

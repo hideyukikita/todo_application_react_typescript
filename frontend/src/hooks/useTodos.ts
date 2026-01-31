@@ -40,8 +40,10 @@ export const useCreateTodo = () => {
             return data;
         }, 
         
+        // 成功したら一覧を再取得して画面を更新
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['Todos']});
+            queryClient.invalidateQueries({ queryKey: ['TodoStats']});
         },
     })
 };
@@ -59,6 +61,7 @@ export const useUpdateTodo = () => {
         // 成功したら一覧を再取得して画面を更新
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['Todos'] });
+            queryClient.invalidateQueries({ queryKey: ['TodoStats']});
         }
     })
 }
@@ -75,6 +78,18 @@ export const useDeleteTodo = () => {
         // 成功したら一覧を再取得
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['Todos'] });
+            queryClient.invalidateQueries({ queryKey: ['TodoStats']});
         }
     });
 };
+
+// 統計取得用フック
+export const useTodoStats = () => {
+    return useQuery({
+        queryKey: ['TodoStats'],
+        queryFn: async () => {
+            const { data } = await api.get('/todos/stats');
+            return data;
+        },
+    })
+}

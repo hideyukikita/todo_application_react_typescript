@@ -3,7 +3,7 @@
 ////////////////////////////////////////////
 
 import React, { useState } from 'react';
-import { useTodos, useUpdateTodo, useDeleteTodo } from './hooks/useTodos'
+import { useTodos, useUpdateTodo, useDeleteTodo, useTodoStats } from './hooks/useTodos'
 import { useAuth } from './context/AuthContext';
 import { AuthPage } from './pages/AuthPage';
 import type { Todo } from './hooks/useTodos' 
@@ -16,8 +16,10 @@ function App() {
   // 認証情報の取り出し
   const { user, isAuthenticated, logout, isLoading: isAuthLoading } = useAuth();
 
-  // Todoデータの取り出し
+  // Todoデータ・統計データの取り出し
   const { data: todos, isLoading, isError} = useTodos();
+  const { data: statsData } = useTodoStats();
+
 
   // ソート機能の状態を管理するステート
   const [sortBy, setSortBy] = useState<'deadline' | 'priority' | 'created'>('created');
@@ -133,7 +135,7 @@ function App() {
         </header>
 
         {/* 統計グラフ */}
-        {todos && <TodoStats todos={todos}/>}
+        {statsData && <TodoStats stats={statsData}/>}
 
         {/* 新規登録フォーム */}
         <TodoForm />

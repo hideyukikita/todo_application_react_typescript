@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { todoSchema } from '../../../shared/index';
+import type { TodoInput } from '../../../shared/index';
 import { useCreateTodo, useUpdateTodo } from '../hooks/useTodos';
 import type { Todo } from '../hooks/useTodos';
 import { PlusCircle, Save } from 'lucide-react';
@@ -18,93 +22,124 @@ export const TodoForm = ( { editTodo, onClose }: TodoFormProps ) => {
         // 日本時間(JST)のYYYY-MM-DDTHH:mm形式に整形
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2,'0');
+        const day = String(now.getDate()).padStart(2, '0');
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
 
         return `${year}-${month}-${day}T${hours}:${minutes}`;
     }
 
-    // 各入力項目のステート管理
-    const [title, setTitle] = useState('');
-    const [memo, setMemo] = useState('');
-    const [priority, setPriority] = useState<'HIGH' | 'MEDIUM' | 'LOW'>('MEDIUM');
-    const [deadline, setDeadline] = useState(getInitialDeadline());
+    // React Hook Formの初期化
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<TodoInput>({
+            resolver: zodResolver(todoSchema),
+            defaultValues: {
+                title: '',
+                memo: '',
+                priority: 'MEDIUM',
+                deadline: getInitialDeadline(),
+            },
+    });
+
     
     const createTodoMutation = useCreateTodo();
     const updateTodoMutation = useUpdateTodo();
 
     // 編集対象(editTodo)がセットされたら、入力欄にその値を反映させる
     useEffect(() => {
-        if(editTodo){
-            setTitle(editTodo.title);
-            setMemo(editTodo.memo || '');
-            setPriority(editTodo.priority);
-            // DBの”YYYY-MM-DD HH:mm:ss”を"YYYY-MM-DDTHH:mm"に変換してセット
-            const formattedDate = editTodo.deadline.replace(' ', 'T').slice(0, 16);
-            setDeadline(formattedDate);
+        if (editTodo) {
+            // reset関数を使ってフォーム全体に値をセット
+            reset({
+                title: editTodo.title,
+                memo: editTodo.memo || '',
+                priority: editTodo.priority,
+                // DBの'YYYY-MM-DD HH:mm:ss'を'YYYY-MM-DDTHH:mm'に変換
+                deadline: editTodo.deadline.replace(' ', 'T').slice(0, 16),
+            });
         }
-    }, [editTodo]);
+    }, [editTodo, reset]);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if(!title || !deadline) return alert('タイトルと締切は必須です');
+    // 送信処理(handleSubmit(onSubmit))の形で呼び出す
+    const onSubmit = (data: TodoInput) => {
+        // データ送信用にメモのundefinedを空文字に変換
+        const payload = {
+            ...data,
+            memo: data.memo ?? '', //undefinedなら空文字にする
+        };
 
         // 編集モード
-        if(editTodo){
+        if (editTodo) {
             updateTodoMutation.mutate({
                 id: editTodo.id,
-                updates: { title, memo, priority, deadline, is_completed: editTodo.is_completed}
-            },{
+                updates: {
+                    ...payload,
+                    is_completed: editTodo.is_completed?? false //安全のためにdefault値を考慮
+                }
+            }, {
                 onSuccess: () => onClose?.()
-            })
+            });
         } else {
             // 新規登録モード
-            createTodoMutation.mutate({ title, memo, priority, deadline }, {
+            createTodoMutation.mutate( payload, {
                 onSuccess: () => {
-                    //成功したらフォームリセット
-                    setTitle('');
-                    setMemo('');
-                    setPriority('MEDIUM');
-                    setDeadline(getInitialDeadline());
+                    // 成功したらフォームを初期状態にリセット
+                    reset();
                 }
             });
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className={`bg-white p-6 rounded-xl ${editTodo ? '' : 'shadow-sm border border-gray-100 mb-8'}`}>
+        // handleSubmitはZodのバリデーションを実行してからonSubmitを呼ぶ
+        <form onSubmit={handleSubmit(onSubmit)} className={`bg-white p-6 rounded-xl ${editTodo ? '' : 'shadow-sm border border-gray-100 mb-8'}`}>
             {editTodo && <h2 className='text-xl font-bold mb-4 text-gray-700'>タスクを編集</h2>}
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                <input 
-                    type="text"
-                    placeholder="タスク名を入力..."
-                    className='p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none'
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                />
-                <input
-                    type="datetime-local"
-                    className='p-2 border rounded-lg focus:ring2 focus:ring-blue-500 outline-none'
-                    value={deadline}
-                    onChange={(e) => setDeadline(e.target.value)}
-                />
-                <textarea
-                    placeholder="メモ"
-                    className='p-2 border rounded-lg md:col-span-2 focus:ring-2 focus:ring-blue-500 outline-none'
-                    value={memo}
-                    onChange={(e) => setMemo(e.target.value)}
-                />
-                <select 
-                    className='p-2 border rounded-lg outline-none'
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value as Todo['priority'])}
-                >
-                    <option value='HIGH'>優先度:高</option>
-                    <option value='MEDIUM'>優先度:中</option>
-                    <option value='LOW'>優先度:低</option>
-                </select>
+                {/* タイトル入力欄 */}
+                <div className='flex flex-col gap-1'>
+                    <input 
+                        {...register('title')} //registerを使って紐づけ
+                        type='text'
+                        placeholder='タスク名を入力...'
+                        className={`p-2 border rounded-lg focus:ring-2 outline-none ${errors.title ? 'border-red-500 focus:ring-red-200': 'focus:ring-blue-500'}`}
+                    />
+                    {errors.title && <span className='text-red-500 text-xs'>{errors.title.message}</span>}
+                </div>
+                {/* 締切入力欄 */}
+                <div className="flex flex-col gap-1">
+                    <input
+                        {...register('deadline')}
+                        type="datetime-local"
+                        className={`p-2 border rounded-lg focus:ring-2 outline-none ${errors.deadline ? 'border-red-500 focus:ring-red-200' : 'focus:ring-blue-500'}`}
+                    />
+                    {errors.deadline && <span className="text-red-500 text-xs">{errors.deadline.message}</span>}
+                </div>
+                {/* メモ入力欄 */}
+                <div className="flex flex-col gap-1 md:col-span-2">
+                    <textarea
+                        {...register('memo')}
+                        placeholder="メモ"
+                        className={`p-2 border rounded-lg focus:ring-2 outline-none ${errors.memo ? 'border-red-500 focus:ring-red-200' : 'focus:ring-blue-500'}`}
+                    />
+                    {errors.memo && <span className="text-red-500 text-xs">{errors.memo.message}</span>}
+                </div>
+                {/* 優先度選択 */}
+                <div className="flex flex-col gap-1">
+                    <select 
+                        {...register('priority')}
+                        className='p-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500'
+                    >
+                        <option value='HIGH'>優先度:高</option>
+                        <option value='MEDIUM'>優先度:中</option>
+                        <option value='LOW'>優先度:低</option>
+                    </select>
+                    {errors.priority && <span className="text-red-500 text-xs">{errors.priority.message}</span>}
+                </div>
+
                 <div className='md:col-span-2 flex flex-col gap-2'>
                     <button
                         type='submit'

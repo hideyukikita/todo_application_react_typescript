@@ -48,7 +48,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 // Webサーバーの土台作成
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: '*', // TODO 開発時はいったんすべて許可
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders:['Content-Type', 'Authorization']
+}));
+
 // JSONを受け取れるようミドルウェア
 app.use(express.json());
 

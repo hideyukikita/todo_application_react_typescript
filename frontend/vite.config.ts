@@ -8,7 +8,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    host: true, //Wifi共有用
+    host: "0.0.0.0", //Wifi共有用
     port: 5173,
   },
 })

@@ -3,6 +3,7 @@
 #######################################
 
 services:
+  # Database(postgreSQL)
   db:
     image: postgres:16.11-alpine
     container_name: todo-db
@@ -15,6 +16,34 @@ services:
       - "${DB_PORT}:5432" # A5M2やPGからの接続用
     volumes:
       - db-data:/var/lib/postgresql/data
+  # Backend(Node.js/Express)
+  backend:
+    build: ./backend
+    container_name: todo-backend
+    restart: always
+    ports:
+      - "${SERVER_PORT:-3000}:${SERVER_PORT:-3000}"
+    env_file:
+      - .env
+    environment:
+      #Docker内部ではサービス名のDBで通信する
+      DB_HOST: db
+      DB_PORT_INTERNAL: 5432
+    depends_on:
+      - db
+
+  # Frontend(React/vite)
+  frontend:
+    build: ./frontend
+    container_name: todo-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      #スマホ接続のために物理IPが必要(README.mdの手順通り)
+      - VITE_API_URL=${VITE_API_URL}
+    depends_on:
+      - backend
 
 volumes:
   db-data:

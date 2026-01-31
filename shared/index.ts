@@ -23,7 +23,17 @@ export const todoSchema = z.object({
 // 型の抽出
 export type TodoInput = z.infer<typeof todoSchema>;
 
-// --Auth(サインアップ)スキーマ---
+//---Auth(サインアップ)スキーマ---
+export const signupSchema = z.object({
+    name: z.string().min(1, '名前を入力してください。'),
+    email: z.string().email('正しいメールアドレスを入力してください'),
+    password: z.string().min(6, 'パスワードは6文字以上で入力してください'),
+});
+
+export type SignupInput = z.infer<typeof signupSchema>;
+
+
+// --Auth(ログイン)スキーマ---
 export const loginSchema = z.object({
     email: z.string().email('正しいメールアドレスを入力してください'),
     password: z.string().min(1, 'パスワードを入力してください'),

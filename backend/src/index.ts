@@ -5,6 +5,7 @@ import express from 'express';
 import cors from 'cors'
 import { pool } from './db.js';
 import dotenv from 'dotenv';
+import { todoSchema, signupSchema, loginSchema } from '../../shared/index.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcrypt';
@@ -126,8 +127,17 @@ app.get('/api/todos', authenticateToken,  async (req, res) => {
 
 //[POST] /api/todos Todo新規登録API
 app.post('/api/todos', authenticateToken, async (req, res) => {
+    // Zodでリクエストボディを解析・バリデーション
+    const validation = todoSchema.safeParse(req.body);
+    if (!validation.success) {
+        return res.status(400).json({
+            error: '入力内容が正しくありません。',
+            details: validation.error.flatten().fieldErrors //どの項目がエラーか詳細を送る
+        })
+    }
+    
     // 登録データの変数化
-    const { title, memo, priority, deadline } = req.body;
+    const { title, memo, priority, deadline } = validation.data;
 
     try {
         const query = `
@@ -135,8 +145,8 @@ app.post('/api/todos', authenticateToken, async (req, res) => {
             VALUES ($1, $2, $3, $4, $5)
             RETURNING ${TODO_COLUMNS};
         `;
-
-        const values = [title, memo, priority, deadline, req.user!.userId];
+        // memoがundefinedの場合、空文字として保存
+        const values = [title, memo ?? '', priority, deadline, req.user!.userId];
 
         // SQL実行
         const result = await pool.query(query, values);
@@ -154,7 +164,18 @@ app.post('/api/todos', authenticateToken, async (req, res) => {
 app.put('/api/todos/:id', authenticateToken, async ( req, res ) => {
     // 登録データの変数化
     const { id } = req.params;
-    const { title, memo, priority, deadline, is_completed } = req.body;
+
+    // Zodでリクエストボディを解析・バリデーション
+    const validation = todoSchema.safeParse(req.body);
+    if (!validation.success) {
+        return res.status(400).json({
+            error: '入力内容が正しくありません。',
+            details: validation.error.flatten().fieldErrors //どの項目がエラーか詳細を送る
+        })
+    };
+
+    // 解析済みの安全なデータを取り出す
+    const { title, memo, priority, deadline, is_completed } = validation.data;
 
     try {
         const query = `
@@ -175,7 +196,7 @@ app.put('/api/todos/:id', authenticateToken, async ( req, res ) => {
         RETURNING 
             ${TODO_COLUMNS};
         `
-        const values = [title, memo, priority, deadline, is_completed, id, req.user!.userId];
+        const values = [title, memo ?? '' , priority, deadline, is_completed ?? false, id, req.user!.userId];
 
         // SQL実行
         const result = await pool.query(query, values);
@@ -234,13 +255,16 @@ app.delete('/api/todos/:id', authenticateToken, async ( req, res) => {
 
 // [POST] /api/auth/signup ユーザー新規登録
 app.post('/api/auth/signup', async (req, res) => {
-    const { name, email, password } = req.body;
-
-    // 簡易バリデーション (ZODで強化)
-    // TODO
-    if(!name || !email || !password) {
-        return res.status(400).json({ error: `すべての項目を入力してください。`});
+    // Zodでバリデーション
+    const validation = signupSchema.safeParse(req.body);
+    if(!validation.success){
+        return res.status(400).json({
+            error: '入力不備',
+            details: validation.error.flatten().fieldErrors,
+        })
     }
+
+    const { name, email, password } = validation.data;
 
     try {
         // パスワードのハッシュ化
@@ -275,7 +299,16 @@ app.post('/api/auth/signup', async (req, res) => {
 
 // [POST] /api/auth/login ログイン(トークン発行)
 app.post('/api/auth/login', async(req, res) => {
-    const { email, password } = req.body;
+    // Zodでバリデーション
+    const validation = loginSchema.safeParse(req.body);
+    if(!validation.success){
+        return res.status(400).json({
+            error: '入力不備',
+            details: validation.error.flatten().fieldErrors,
+        })
+    }
+
+    const { email, password } = validation.data;
 
     try {
         // ユーザーの検索

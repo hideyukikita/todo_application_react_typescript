@@ -1,45 +1,31 @@
-import { useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
-import type { Todo } from "../hooks/useTodos";
 
 interface TodoStatsProps {
-    todos: Todo[];
+    stats: {
+        ratio: { completed: number; active: number};
+        daily: { date: string; count: string | number }[];
+    };
 };
 
-export const TodoStats = ({ todos }: TodoStatsProps) => {
+export const TodoStats = ({ stats }: TodoStatsProps) => {
+    // 全タスク0なら何も表示しない
+    if(stats.ratio.completed === 0 && stats.ratio.active === 0){
+        return null;
+    }
+
+
     // 完了・未完了の比率データを算出
-    const pieData = useMemo(() => {
-        const completed = todos.filter(t => t.is_completed).length;
-        const active = todos.length - completed;
-        return [
-            { name: '完了', value: completed, color: '#22c55e'}, // green-500
-            { name: '未完了', value: active, color: '#e5e7eb' }, // green-200
-        ];
-    }, [todos]);
+    const pieData = [
+        { name: '完了', value: stats.ratio.completed, color: '#22c55e'},
+        { name: '未完了', value: stats.ratio.active, color: '#e5e7eb' },
+    ];
     
     // 日別完了数のデータを算出(直近7日間)
-    const barData = useMemo(() => {
-        const stats: Record<string, number> = {};
-        // 今日から7日前までの日付を初期化
-        for (let i = 6; i >= 0; i-- ){
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
-            stats[dateStr] = 0;
-        }
-        // 完了済みタスクを日付ごとにカウント
-        todos.filter( t => t.is_completed).forEach(todo => {
-            const d = new Date(todo.deadline);
-            const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
-            if(stats[dateStr] !== undefined){
-                stats[dateStr]++;
-            }
-        });
+    const barData = stats.daily.map(d => ({
+        date: d.date, 
+        count: Number(d.count) //文字列の場合の考慮
+    }));
 
-        return Object.entries(stats).map(([date, count]) => ({ date, count}));
-    }, [todos]);
-
-    if (todos.length === 0) return null;
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

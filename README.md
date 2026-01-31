@@ -72,4 +72,4 @@ VITE_API_URL=http://192.168.0.222:3000
 - `docker-compose.yml`: PostgreSQLコンテナ設定（.env 連携済み）
 
 ## 🚦 今後のロードマップ
-- **Phase 3**: JWT認証の実装、Zodによるバリデーション、タスク統計の可視化。
+- **Phase 3**: Zodによるバリデーション

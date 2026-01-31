@@ -4,6 +4,8 @@
 
 import React, { useState } from 'react';
 import { useTodos, useUpdateTodo, useDeleteTodo } from './hooks/useTodos'
+import { useAuth } from './context/AuthContext';
+import { AuthPage } from './pages/AuthPage';
 import type { Todo } from './hooks/useTodos' 
 import { CheckCircle2, Circle, Clock, AlertCircle, Trash2, Pencil } from 'lucide-react'
 import { TodoForm } from './components/TodoForm';
@@ -11,11 +13,15 @@ import { TodoStats } from './components/TodoStats';
 
 
 function App() {
-  // カスタムフックから「データ」「ロード状態」「エラー状態」を取り出す
-  const { data: todos, isLoading, isError } = useTodos();
+  // 認証情報の取り出し
+  const { user, isAuthenticated, logout, isLoading: isAuthLoading } = useAuth();
+
+  // Todoデータの取り出し
+  const { data: todos, isLoading, isError} = useTodos();
 
   // ソート機能の状態を管理するステート
   const [sortBy, setSortBy] = useState<'deadline' | 'priority' | 'created'>('created');
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
 
   // 表示用データの算出
   const sortedTodos = React.useMemo(() => {
@@ -39,9 +45,6 @@ function App() {
   // 更新機能の準備
   const updateTodoMutation = useUpdateTodo();
   const deleteTodoMutation = useDeleteTodo();
-  
-  //現在編集中のタスクを管理(nullならモーダル非表示)
-  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
 
   // 完了・未完了を切り替える関数
   const handleToggleComplete = (todo: Todo) => {
@@ -61,7 +64,7 @@ function App() {
   };
 
   // 1. ロード中の表示
-  if(isLoading){
+  if(isAuthLoading){
     return(
       <div className='flex items-center justify-center min-h-screen bg-gray-50'>
         <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'/>
@@ -69,14 +72,14 @@ function App() {
     );
   }
 
-  // 2. エラー発生時の表示
-  if(isError){
-    return(
-      <div className='flex items-center justify-center min-h-screen bg-gray-50 text-red-500'>
-        <AlertCircle className='mr-2'/>
-      </div>
-    );
-  }
+  // 未ログインならAuthPageを表示して終了
+  if (!isAuthenticated) {
+    return <AuthPage/>
+  };
+
+  // 2. データロード・エラー発生時の表示
+  if(isLoading) return <div className='flex items-center justify-center min-h-screen bg-gray-50'><div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'/></div>;
+  if (isError) return <div className='flex items-center justify-center min-h-screen bg-gray-50 text-red-500'><AlertCircle className='mr-2'/></div>;
 
   return (
     <div className='min-h-screen bg-gray-50 p-4 md:p-8 relative'>
@@ -89,12 +92,21 @@ function App() {
           </div>
         </div>
       )}
-    
 
       <div className='max-w-4xl mx-auto'>
         <header className='mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4'>
           <div>
             <h1 className='text-3xl font-bold text-gray-800'>My Todo List</h1>
+            {/* ユーザー名表紙とログアウトボタン */}
+            <div className='flex items-center gap-4 mt-2 text-sm'>
+              <span className='text-gray-600 font-medium'>👤 {user?.name} さん</span>
+              <button 
+                onClick={logout}
+                className='text-red-500 hover:text-red-700 font-bold transition-colors'
+              >
+              ログアウト
+              </button>
+            </div>
             <p className='text-gray-600'>Phase1: 高機能CRUD実装</p>
           </div>
           {/* ソート切り替えボタン */}
